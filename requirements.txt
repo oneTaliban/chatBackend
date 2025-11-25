@@ -1,0 +1,12 @@
+Django
+djangorestframework
+django-cors-headers
+channels
+channels-redis
+pillow
+stripe
+cryptography
+django-user-agents
+ua-parser
+djangorestframework-simplejwt
+django-user-agents

