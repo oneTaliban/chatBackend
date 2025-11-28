@@ -26,7 +26,7 @@ urlpatterns = [
     path('api/beta/', include('c2api.urls')),
     path('api/blog/', include('blog.urls')),
     # path('api/subscription', include('subscription.urls')),
-    # path('api/payments/', include('payments.urls')),
+    path('api/payments/', include('payments.urls')),
     # path('api/hacking/', include('hacking.urls')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

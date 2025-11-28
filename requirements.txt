@@ -10,3 +10,16 @@ django-user-agents
 ua-parser
 djangorestframework-simplejwt
 django-user-agents
+selenium
+humanize
+tweepy
+bitcoinlib
+requests
+qrcode
+gunicorn
+pyautogui
+psutil
+whitenoise
+django-filter
+dj-database-url
+psycopg2-binary

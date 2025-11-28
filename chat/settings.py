@@ -14,13 +14,17 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
+from urllib.parse import urlparse
 
 import environ
 import os
+import dj_database_url
 
 load_dotenv()
 environ.Env.read_env()
 env = environ.Env()
+
+RENDER = os.environ.get('RENDER', False)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +40,9 @@ SECRET_KEY = 'django-insecure-$sy!myg0fus0mw+d^ot%ic00of#6sr8ldj-%93f-^!!&i&y=75
 DEBUG = os.environ.get('DEBUG', 'TRUE') == 'TRUE'
 
 ALLOWED_HOSTS = ['*']
+
+if not DEBUG: 
+    ALLOWED_HOSTS += [os.environ.get('ALLOWED_HOST_RENDER', '')]
 
 
 # Application definition
@@ -73,6 +80,9 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    'whitenoise.middleware.WhiteNoiseMiddleware',   
+
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     'corsheaders.middleware.CorsMiddleware',
@@ -112,6 +122,14 @@ ASGI_APPLICATION = 'chat.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+if RENDER:
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True
+        )
+    }    
+
 
 DATABASES = {
     'default': {
@@ -121,14 +139,26 @@ DATABASES = {
 }
 
 # channels websockets
+REDIS_URL = os.getenv('REDIS_URL')
+
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            }            
+        }
+    }
+
 CHANNEL_LAYERS = {
     'default': {
-        # "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
         # using redis
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
-        },
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     'hosts': [('127.0.0.1', 6379)],
+        # },
     },
 }
 
@@ -168,7 +198,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 #Encryption
 ENCRYPTION_KEY = Fernet.generate_key()
@@ -219,6 +249,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

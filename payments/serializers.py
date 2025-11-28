@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Donation , SubscriptionPlan, UserSubscription, PaymentWebhook
+from .models import Donation , SubscriptionPlan, UserSubscription, PaymentWebhook, Payment
 
 class DonationSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source = 'user.email',  read_only=True)
@@ -29,4 +29,21 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserSubscription
+        fields = '__all__'
+
+class PaymentCreateSerializer(serializers.Serializer):
+    payment_method = serializers.ChoiceField(choices=['stripe', 'mpesa', 'bitcoin', 'paypaal'])
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    currency = serializers.CharField(max_length=3, default='USD')
+    order_id = serializers.CharField(required=False)
+
+    #M-pesa specific 
+    phone = serializers.CharField(required=False)
+
+    #Stripe specific
+    save_card = serializers.BooleanField(default=False)
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
         fields = '__all__'

