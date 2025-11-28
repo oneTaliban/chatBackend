@@ -150,17 +150,17 @@ if REDIS_URL:
             }            
         }
     }
-
-CHANNEL_LAYERS = {
-    'default': {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-        # using redis
-        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        # 'CONFIG': {
-        #     'hosts': [('127.0.0.1', 6379)],
-        # },
-    },
-}
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+            # using redis
+            # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            # 'CONFIG': {
+            #     'hosts': [('127.0.0.1', 6379)],
+            # },
+        },
+    }
 
 # RestFramework
 REST_FRAMEWORK = {
