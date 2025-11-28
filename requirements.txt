@@ -1,6 +1,7 @@
 Django
 djangorestframework
 django-cors-headers
+daphne
 channels
 channels-redis
 pillow
@@ -24,4 +25,4 @@ django-filter
 dj-database-url
 psycopg2-binary
 dotenv
-environ
+django-environ
