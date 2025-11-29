@@ -44,7 +44,9 @@ ALLOWED_HOSTS = ['*']
 if not DEBUG: 
     ALLOWED_HOSTS += [os.environ.get('ALLOWED_HOST_RENDER', '')]
 
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://onetalibanchat.onrender.com",
+]
 # Application definition
 
 INSTALLED_APPS = [
