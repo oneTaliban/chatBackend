@@ -21,12 +21,13 @@ class UserRegistrationView(generics.CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
 
-        UserProfile.objects.create(user=user)
+#         UserProfile.objects.create(user=user)
 
         return Response({
             'user': UserSerializer(user).data,
             'refresh': str(refresh),
             'access': str(refresh.access_token),
+            'payload': 'user registration successful'
         }, status=status.HTTP_201_CREATED)
 
 class LoginHistoryView(generics.ListAPIView):
@@ -50,7 +51,7 @@ def login_view(request):
 
         LoginHistory.objects.create(
             user=user,
-            ip_address = get_client_ip(),
+            ip_address = get_client_ip(request),
             user_agent = request.META.get('HTTP_USER_AGENT', ''),
             success =True
         )
@@ -69,7 +70,7 @@ def login_view(request):
             user = User.objects.get(username=username)
             LoginHistory.objects.create(
                 user=user,
-                ip_address = get_client_ip(),
+                ip_address = get_client_ip(request),
                 user_agent = request.META.get('HTTP_USER_AGENT', ''),
                 success = False
             )
